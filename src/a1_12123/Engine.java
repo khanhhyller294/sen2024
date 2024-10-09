@@ -2,15 +2,20 @@ package engine;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
 public class Engine {
+
     private List<Doc> docs;
 
+    public Engine() {
+        // Initialize the list of documents to avoid NullPointerException
+        this.docs = new ArrayList<>();
+    }
+
+    // Improved method to load documents from a directory
     public int loadDocs(String dirname) {
         File folder = new File(dirname);
         File[] files = folder.listFiles();
@@ -20,19 +25,14 @@ public class Engine {
 
         int count = 0;
         for (File file : files) {
-            String[] lines = new String[2];
-            String content = "";
             if (file.isFile()) {
-                try {
-                    Scanner reader = new Scanner(file);
-                    // add two lines into content of the doc
-                    while (reader.hasNext()) {
-                        for (int i = 0; i < lines.length; i++) {
-                            lines[i] = reader.nextLine();
-                        }
+                try (Scanner reader = new Scanner(file)) {
+                    StringBuilder content = new StringBuilder();
+                    while (reader.hasNextLine()) {
+                        content.append(reader.nextLine()).append("\n");
                     }
-                    content += lines[0] + "\n" + lines[1];
-                    Doc doc = new Doc(content);
+                    // Create a document with the content and add it to the docs list
+                    Doc doc = new Doc(content.toString().trim());
                     docs.add(doc);
                     count++;
                 } catch (FileNotFoundException e) {
@@ -47,26 +47,32 @@ public class Engine {
         return docs.toArray(new Doc[0]);
     }
 
+    // Improved search method
     public List<Result> search(Query q) {
         List<Result> results = new ArrayList<>();
         for (Doc doc : docs) {
+            // Get matches for the query against the document
             List<Match> matches = q.matchAgainst(doc);
-
             if (!matches.isEmpty()) {
-                results.add(new Result(doc, matches));
+                // Only add results with matches
+                Result result = new Result(doc, matches);
+                results.add(result);
             }
         }
-        Collections.sort(results);
+        // Sort results by relevance (the compareTo method in Result class should handle this)
+        results.sort(Result::compareTo);
         return results;
     }
 
-    public String htmlResult(List<Result> results)
-    {
-        StringBuilder html = new StringBuilder();
-        for (Result result : results) {
-            html.append(result.htmlHighlight()).append("<br><br>");
-
+    // Improved method to return HTML results for all the matches
+    public String htmlResult(List<Result> results) {
+        if (results.isEmpty()) {
+            return "";
         }
-        return html.toString();
+        StringBuilder resultHTML = new StringBuilder();
+        for (Result result : results) {
+            resultHTML.append(result.htmlHighlight()).append("\n");
+        }
+        return resultHTML.toString().trim();
     }
 }
