@@ -8,19 +8,18 @@ public class Doc {
     private List<Word> body;
 
     public Doc(String content) {
-        title = new ArrayList<>();
-        body = new ArrayList<>();
+        String[] lines = content.split("\n", 2); // Assume title and body are separated by a newline
+        title = extractWords(lines[0]);
+        body = extractWords(lines[1]);
+    }
 
-        String[] lines = content.split("\n");
-        if (lines.length >= 2) {
-            for (String wordText : lines[0].split(" ")) {
-                title.add(Word.createWord(wordText));
-            }
-
-            for (String wordText : lines[1].split(" ")) {
-                body.add(Word.createWord(wordText));
-            }
+    private List<Word> extractWords(String line) {
+        String[] words = line.split(" ");
+        List<Word> wordList = new ArrayList<>();
+        for (String word : words) {
+            wordList.add(Word.createWord(word));
         }
+        return wordList;
     }
 
     public List<Word> getTitle() {
@@ -33,13 +32,9 @@ public class Doc {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (this == o) {
-            return true;
-        }
-        Doc docOther = (Doc) o;
-        return title.equals(docOther.title) && body.equals(docOther.body);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Doc doc = (Doc) o;
+        return title.equals(doc.title) && body.equals(doc.body);
     }
 }

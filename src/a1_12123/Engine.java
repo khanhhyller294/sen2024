@@ -7,37 +7,22 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Engine {
-
-    private List<Doc> docs;
-
-    public Engine() {
-        this.docs = new ArrayList<>();
-    }
+    private List<Doc> docs = new ArrayList<>();
 
     public int loadDocs(String dirname) {
         File folder = new File(dirname);
         File[] files = folder.listFiles();
-        if (files == null) {
-            return 0;
-        }
+        if (files == null) return 0;
 
-        int count = 0;
         for (File file : files) {
-            if (file.isFile()) {
-                try (Scanner reader = new Scanner(file)) {
-                    StringBuilder content = new StringBuilder();
-                    while (reader.hasNextLine()) {
-                        content.append(reader.nextLine()).append("\n");
-                    }
-                    Doc doc = new Doc(content.toString().trim());
-                    docs.add(doc);
-                    count++;
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+            try (Scanner sc = new Scanner(file)) {
+                String content = sc.nextLine() + "\n" + sc.nextLine();
+                docs.add(new Doc(content));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
             }
         }
-        return count;
+        return docs.size();
     }
 
     public Doc[] getDocs() {
@@ -49,22 +34,18 @@ public class Engine {
         for (Doc doc : docs) {
             List<Match> matches = q.matchAgainst(doc);
             if (!matches.isEmpty()) {
-                Result result = new Result(doc, matches);
-                results.add(result);
+                results.add(new Result(doc, matches));
             }
         }
-        results.sort(Result::compareTo);
+        results.sort(null); // Sort by the compareTo() method in Result
         return results;
     }
 
     public String htmlResult(List<Result> results) {
-        if (results.isEmpty()) {
-            return "";
-        }
-        StringBuilder resultHTML = new StringBuilder();
+        StringBuilder html = new StringBuilder();
         for (Result result : results) {
-            resultHTML.append(result.htmlHighlight()).append("\n");
+            html.append(result.htmlHighlight()).append("\n");
         }
-        return resultHTML.toString().trim();
+        return html.toString();
     }
 }

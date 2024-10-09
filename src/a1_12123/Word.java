@@ -34,8 +34,6 @@ public class Word {
         return true;
     }
 
-
-
     public String getText() {
         return text;
     }

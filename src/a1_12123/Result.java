@@ -3,114 +3,51 @@ package engine;
 import java.util.List;
 
 public class Result implements Comparable<Result> {
-
-    /**
-     * private attributes
-     */
-    private Doc d;
+    private Doc doc;
     private List<Match> matches;
 
-    /**
-     * A constructor to initialize a Result object with the related document and the list of matches
-     * @param d
-     * @param matches
-     */
-    public Result(Doc d, List<Match> matches) {
-        this.d = d;
+    public Result(Doc doc, List<Match> matches) {
+        this.doc = doc;
         this.matches = matches;
     }
 
-    /**
-     *
-     * @return the document that contains matches
-     */
-    public Doc getDoc() {
-        return this.d;
-    }
-
-    /**
-     *
-     * @return a list of Matches objects
-     */
     public List<Match> getMatches() {
-        return this.matches;
+        return matches;
     }
 
-    /**
-     *
-     * @return the sum of all frequencies of the matches
-     */
+    public Doc getDoc() {
+        return this.doc;
+    }
+
     public int getTotalFrequency() {
-        int totalFrequency = 0;
-        for (Match match : matches) {
-            totalFrequency += match.getFreq();
-        }
-        return totalFrequency;
+        return matches.stream().mapToInt(Match::getFreq).sum();
     }
 
-    /**
-     *
-     * @return the average of the first indexes of the matches
-     */
     public double getAverageFirstIndex() {
-        if (matches.isEmpty()) {
-            return 0.0;
-        }
-        int total = 0;
-        for (Match match : matches) {
-            total += match.getFirstIndex();
-        }
-        return (double) total / matches.size();
+        return matches.stream().mapToInt(Match::getFirstIndex).average().orElse(0.0);
     }
 
-    /**
-     *
-     * @return the matched words being highlighted in the document using HTML markups
-     * @requires <pre> if Matches are in title, it will be underlined
-     * if Matches are in body, it will be bold </pre>
-     */
     public String htmlHighlight() {
-        // a result string
-        StringBuilder result = new StringBuilder();
-        // get the title and body of the document
-        List<Word> title = this.d.getTitle();
-        List<Word> body = this.d.getBody();
-        // loop through the list of matches
-        for (Match match : matches) {
-            // get the matched word
-            Word matchedWord = match.getWord();
-            // get the text part of the word
-            String text = matchedWord.getText();
-            // highlight it
-            if (title.contains(matchedWord)) {
-                text = "<u>" + text + "</u>";
+        // For simplicity, only working with title words in this implementation
+        StringBuilder html = new StringBuilder();
+        for (Word word : doc.getTitle()) {
+            if (matches.stream().anyMatch(m -> m.getWord().equals(word))) {
+                html.append("<u>").append(word.getText()).append("</u> ");
+            } else {
+                html.append(word.getText()).append(" ");
             }
-            if (body.contains(matchedWord)) {
-                text = "<b>" + text + "</b>";
-            }
-            // add parts of the word to the result
-            result.append(matchedWord.getPrefix()).append(text).append(matchedWord.getSuffix());
         }
-        return result.toString();
+        return html.toString().trim();
     }
 
-    /**
-     *
-     * @param o the object to be compared.
-     * @return whether Result A is greater than Result B, based on match count, total frequency, avg first index
-     *
-     */
     @Override
-    public int compareTo(Result o) {
-        int matchesSizeComp = Integer.compare(this.matches.size(), o.matches.size());
-        int totalFreqComp = Integer.compare(this.getTotalFrequency(), o.getTotalFrequency());
-        double avgFirstIndexComp = Double.compare(this.getAverageFirstIndex(), o.getAverageFirstIndex());
-        if (matchesSizeComp != 0) {
-            return matchesSizeComp;
-        } else if (totalFreqComp != 0) {
-            return totalFreqComp;
-        } else if (avgFirstIndexComp != 0.0) {
-            return (int) avgFirstIndexComp;
-        } else return 0;
+    public int compareTo(Result other) {
+        int matchCountComparison = Integer.compare(other.getMatches().size(), this.getMatches().size());
+        if (matchCountComparison != 0) return matchCountComparison;
+
+        int totalFreqComparison = Integer.compare(other.getTotalFrequency(), this.getTotalFrequency());
+        if (totalFreqComparison != 0) return totalFreqComparison;
+
+        return Double.compare(this.getAverageFirstIndex(), other.getAverageFirstIndex());
     }
 }

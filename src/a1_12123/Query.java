@@ -1,18 +1,20 @@
 package engine;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 public class Query {
     private List<Word> keywords;
 
     public Query(String searchPhrase) {
         keywords = new ArrayList<>();
-        for (String wordText : searchPhrase.split(" ")) {
-            Word word = Word.createWord(wordText);
-            if (word.isKeyword()) {
-                keywords.add(word);
+        String[] words = searchPhrase.split(" ");
+        for (String word : words) {
+            Word w = Word.createWord(word);
+            if (w.isKeyword()) {
+                keywords.add(w);
             }
         }
     }
@@ -23,31 +25,16 @@ public class Query {
 
     public List<Match> matchAgainst(Doc d) {
         List<Match> matches = new ArrayList<>();
-
-        for (Word keyword : keywords) {
-            int keyFreq = 0;
-            int indexFirst = -1;
-
-            List<Word> docWords = new ArrayList<>();
-            docWords.addAll(d.getTitle());
-            docWords.addAll(d.getBody());
-
-            for (int i = 0; i < docWords.size(); i++) {
-                if (keyword.equals(docWords.get(i))) {
-                    keyFreq++;
-                    if (indexFirst == -1) {
-                        indexFirst = i;
-                    }
-                }
-            }
-
-            if (keyFreq > 0) {
-                matches.add(new Match(d, keyword, keyFreq, indexFirst));
+        List<Word> docWords = new ArrayList<>();
+        docWords.addAll(d.getTitle());
+        docWords.addAll(d.getBody());
+        for (Word keyword : this.keywords) {
+            int freq = Collections.frequency(docWords, keyword);
+            if (freq > 0) {
+                matches.add(new Match(d, keyword, freq, docWords.indexOf(keyword)));
             }
         }
-
-        matches.sort(Comparator.comparingInt(Match::getFirstIndex));
-
+        matches.sort(Comparator.naturalOrder());
         return matches;
     }
 }

@@ -1,20 +1,20 @@
 package engine;
 
 public class Match implements Comparable<Match> {
-    private int freq;
-    private Doc d;
-    private Word w;
+    private Doc doc;
+    private Word word;
+    private int frequency;
     private int firstIndex;
 
     public Match(Doc d, Word w, int freq, int firstIndex) {
-        this.freq = freq;
-        this.d = d;
-        this.w = w;
+        this.doc = d;
+        this.word = w;
+        this.frequency = freq;
         this.firstIndex = firstIndex;
     }
 
     public int getFreq() {
-        return freq;
+        return frequency;
     }
 
     public int getFirstIndex() {
@@ -22,12 +22,11 @@ public class Match implements Comparable<Match> {
     }
 
     public Word getWord() {
-        return w;
+        return word;
     }
 
     @Override
-    public int compareTo(Match o) {
-        return Integer.compare(this.firstIndex, o.getFirstIndex());
+    public int compareTo(Match other) {
+        return Integer.compare(this.firstIndex, other.firstIndex);
     }
-
 }
