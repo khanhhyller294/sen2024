@@ -1,121 +1,90 @@
 package engine;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Result implements Comparable<Result> {
-    private Doc doc;
+    private int matchCount;
+    private int totalFrequency;
+    private double averageFirstIndex;
+    private Doc d;
     private List<Match> matches;
-    public Result(Doc d, List<Match> matches){
-        this.doc = d;
+
+    public Result(Doc d, List<Match> matches) {
+        this.d = d;
         this.matches = matches;
+        this.matchCount = matches.size();
+        int totalStIndex = 0;
+        this.totalFrequency = 0;
+
+        for (Match match : matches) {
+            totalStIndex = totalStIndex + match.getFirstIndex();
+            this.totalFrequency = this.totalFrequency + match.getFreq();
+        }
+
+        this.averageFirstIndex = matchCount > 0 ? (double) totalStIndex / matchCount : 0.0;
     }
 
     public Doc getDoc() {
-        return doc;
+        return this.d;
     }
 
-    public List<Match> getMatches(){
-        return matches;
+    public List<Match> getMatches() {
+        return this.matches;
     }
 
-    public int getMatchCount() {
-        return matches.size();
+    public int getTotalFrequency() {
+        return this.totalFrequency;
     }
-    public int getTotalFrequency(){
-        int totalfreg = 0;
-        for(Match match : matches){
-            totalfreg += match.getFreq();
-        }
-        return totalfreg;
-    }
-    public double getAverageFirstIndex(){
-        int totalIndexes = 0;
-        for(Match match : matches) {
-            totalIndexes += match.getFirstIndex();
-        }
-        if (matches.size() > 0) {
-            return (double) totalIndexes / matches.size();
-        }
-        return 0.0;
+
+
+    public double getAverageFirstIndex() {
+        return this.averageFirstIndex;
     }
 
     public String htmlHighlight() {
-        StringBuilder resultHtml = new StringBuilder();
-        List<Word> titleWords = doc.getTitle();
-        List<Word> bodyWords = doc.getBody();
+        StringBuilder md = new StringBuilder();
+        List<Match> listMatch = this.getMatches();
+        md.append("<h3>");
+        List<Word> listTitle = this.d.getTitle();
 
-        boolean inTitle = true;
-
-        resultHtml.append("<h3>"); // Add the opening <h3> tag at the beginning
-
-        for (Word word : titleWords) {
-            String htmlTag = getHtmlTag(word, inTitle);
-
-            if (!htmlTag.isEmpty()) {
-                if(!word.getPrefix().isEmpty())  resultHtml.append(word.getPrefix().trim());
-                resultHtml.append(htmlTag);
-                resultHtml.append(word.getText());
-                resultHtml.append("</" + htmlTag.substring(1) + "");
-                if(!word.getSuffix().isEmpty())  resultHtml.append(word.getSuffix().trim());
+        for (Word word : listTitle) {
+            boolean isMatch = listMatch.stream().anyMatch(match -> word.equals(match.getWord()));
+            if (isMatch) {
+                md.append(word.getPrefix())
+                        .append("<u>").append(word.getText()).append("</u>")
+                        .append(word.getSuffix()).append(" ");
             } else {
-                resultHtml.append(word);
+                md.append(word.getPrefix()).append(word.getText()).append(word.getSuffix()).append(" ");
             }
-            if(titleWords.indexOf(word) != titleWords.size() -1)
-                resultHtml.append(" ");
         }
-        resultHtml.append("</h3>"); // Close the <h3> tag for the title
 
-        inTitle = false;
-        resultHtml.append("<p>"); // Open <p> tag for the body section
-
-        for (Word word : bodyWords) {
-            String htmlTag = getHtmlTag(word, inTitle);
-            if (!htmlTag.isEmpty()) {
-                if(!word.getPrefix().isEmpty())  resultHtml.append(word.getPrefix().trim());
-                resultHtml.append(htmlTag);
-                resultHtml.append(word.getText());
-                resultHtml.append("</" + htmlTag.substring(1) + "");
-                if(!word.getSuffix().isEmpty()) {
-                    resultHtml.append(word.getSuffix().trim());
-                }
+        List<Word> bodies = this.d.getBody();
+        md.deleteCharAt(md.length() - 1);
+        md.append("</h3>");
+        md.append("<p>");
+        for (Word word : bodies) {
+            boolean isMatch = listMatch.stream().anyMatch(match -> word.equals(match.getWord()));
+            if (isMatch) {
+                md.append(word.getPrefix())
+                        .append("<b>").append(word.getText()).append("</b>")
+                        .append(word.getSuffix()).append(" ");
             } else {
-                resultHtml.append(word);
+                md.append(word.getPrefix()).append(word.getText()).append(word.getSuffix()).append(" ");
             }
-            if(bodyWords.indexOf(word) != bodyWords.size() -1)
-                resultHtml.append(" ");
         }
-        // Close the <p> tag for the body section
-        resultHtml.append("</p>");
-        String result =  resultHtml.toString();
-        result = result.replaceAll(" +</p>", "</p>");
-        return result;
+        md.deleteCharAt(md.length() - 1);
+        md.append("</p>");
+
+        return md.toString();
     }
 
-    private String getHtmlTag(Word word, boolean inTitle) {
-        for (Match match : matches) {
-            if (match.getWord().equals(word)) {
-                if (inTitle) {
-                    return "<u>";
-                } else {
-                    return "<b>";
-                }
-            }
+    public int compareTo(Result o) {
+        if (this.matchCount != o.matchCount) {
+            return o.matchCount - this.matchCount;
         }
-
-        // If the word doesn't match any term in matches, return the word itself
-        return "";
-    }
-
-
-    @Override
-    public int compareTo(Result otherResult){
-        if(this.getMatchCount() != otherResult.getMatchCount()){
-            return Integer.compare(otherResult.getMatchCount(),this.getMatchCount());
-        } else if (this.getTotalFrequency() != otherResult.getTotalFrequency()) {
-            return Integer.compare(otherResult.getTotalFrequency(),this.getTotalFrequency());
-        } else {
-            return Double.compare(this.getAverageFirstIndex(),otherResult.getAverageFirstIndex());
+        if (this.totalFrequency != o.totalFrequency) {
+            return o.totalFrequency - this.totalFrequency;
         }
+        return Double.compare(this.averageFirstIndex, o.averageFirstIndex);
     }
 }

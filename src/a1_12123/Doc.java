@@ -8,33 +8,40 @@ public class Doc {
     private List<Word> body;
 
     public Doc(String content) {
-        String[] lines = content.split("\n", 2); // Assume title and body are separated by a newline
-        title = extractWords(lines[0]);
-        body = extractWords(lines[1]);
-    }
-
-    private List<Word> extractWords(String line) {
-        String[] words = line.split(" ");
-        List<Word> wordList = new ArrayList<>();
-        for (String word : words) {
-            wordList.add(Word.createWord(word));
+        String[] lines = content.split("\\R");
+        this.title = new ArrayList<>();
+        this.body = new ArrayList<>();
+        if (lines.length > 0) {
+            String[] words = lines[0].split(" ");
+            for (String word : words) {
+                this.title.add(Word.createWord(word));
+            }
         }
-        return wordList;
+        if (lines.length > 1) {
+            String[] words = lines[1].split(" ");
+            for (String word : words) {
+                this.body.add(Word.createWord(word));
+            }
+        }
     }
 
     public List<Word> getTitle() {
-        return title;
+        return this.title;
     }
 
     public List<Word> getBody() {
-        return body;
+        return this.body;
     }
 
-    @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Doc doc = (Doc) o;
-        return title.equals(doc.title) && body.equals(doc.body);
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Doc other = (Doc) o;
+        return title.equals(other.title) && body.equals(other.body);
     }
+
 }

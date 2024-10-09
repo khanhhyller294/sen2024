@@ -8,9 +8,7 @@ import java.util.HashSet;
 
 public class Word {
     public static Set<String> stopWords;
-    private String text;
-    private String suffix;
-    private String prefix;
+    private String suffix, prefix, text;
 
     private Word(String prefix, String text, String suffix) {
         this.text = text;
@@ -34,16 +32,16 @@ public class Word {
         return true;
     }
 
-    public String getText() {
-        return text;
+    public String getPrefix() {
+        return prefix;
     }
 
     public String getSuffix() {
         return suffix;
     }
 
-    public String getPrefix() {
-        return prefix;
+    public String getText() {
+        return text;
     }
 
     @Override
@@ -60,11 +58,11 @@ public class Word {
 
     @Override
     public String toString() {
-        return prefix + text + suffix;
+        return prefix + suffix + text;
     }
 
     public static Word createWord(String rawText) {
-        if (rawText == null || rawText.isEmpty()) {
+        if ( rawText.isEmpty()|| rawText == null ) {
             return new Word("", "", "");
         }
 
@@ -93,7 +91,6 @@ public class Word {
             text = text.substring(0, text.length() - 2);
         }
 
-        // Check if the word is valid
         if (text.isEmpty() || !text.matches("[a-zA-Z\\-']+")) {
             return new Word("", rawText, "");
         }

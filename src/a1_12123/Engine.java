@@ -1,51 +1,72 @@
 package engine;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 public class Engine {
-    private List<Doc> docs = new ArrayList<>();
+    private List<Doc> docs;
 
-    public int loadDocs(String dirname) {
-        File folder = new File(dirname);
-        File[] files = folder.listFiles();
-        if (files == null) return 0;
-
-        for (File file : files) {
-            try (Scanner sc = new Scanner(file)) {
-                String content = sc.nextLine() + "\n" + sc.nextLine();
-                docs.add(new Doc(content));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        return docs.size();
+    public Engine() {
+        this.docs = new ArrayList<>();
     }
 
+    public int loadDocs(String dirname) {
+        if (Objects.equals(dirname, "")) {
+            return 0;
+        }
+        File directory = new File(dirname);
+        if (!directory.exists() || !directory.isDirectory()) {
+            return 0;
+        }
+        File[] files = directory.listFiles();
+        Arrays.sort(files, Comparator.comparing(File::getName));
+        for (File file : files) {
+            if (file.isFile() && file.getName().endsWith(".txt")) {
+                String content;
+                try {
+                    content = new String(Files.readAllBytes(file.toPath()));
+                } catch (IOException e) {
+                    continue;
+                }
+                this.docs.add(new Doc(content));
+            }
+        }
+        return this.docs.size();
+    }
+
+
     public Doc[] getDocs() {
-        return docs.toArray(new Doc[0]);
+        return this.docs.toArray(new Doc[0]);
     }
 
     public List<Result> search(Query q) {
         List<Result> results = new ArrayList<>();
-        for (Doc doc : docs) {
+        int size = this.docs.size();
+        for (int i = 0; i < size; i++) {
+            Doc doc = this.docs.get(i);
             List<Match> matches = q.matchAgainst(doc);
             if (!matches.isEmpty()) {
                 results.add(new Result(doc, matches));
             }
         }
-        results.sort(null); // Sort by the compareTo() method in Result
+        Collections.sort(results);
         return results;
     }
 
     public String htmlResult(List<Result> results) {
-        StringBuilder html = new StringBuilder();
+        StringJoiner sj = new StringJoiner("");
         for (Result result : results) {
-            html.append(result.htmlHighlight()).append("\n");
+            sj.add(result.htmlHighlight());
         }
-        return html.toString();
+        return sj.toString();
     }
+
 }
