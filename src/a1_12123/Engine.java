@@ -1,31 +1,46 @@
 package engine;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 public class Engine {
     private List<Doc> docs;
 
     public int loadDocs(String dirname) {
-        docs = new ArrayList<>();
-        File directory = new File(dirname);
-        if (directory.isDirectory()) {
-            File[] files = directory.listFiles();
-            for (File file : files) {
-                if (file.isFile() && file.getName().endsWith(".txt")) {
-                    try
-                    {
-                        docs.add(new Doc(file.getAbsolutePath()));
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        File folder = new File(dirname);
+        File[] files = folder.listFiles();
+        if (files == null) {
+            return 0;
+        }
+
+        int count = 0;
+        for (File file : files) {
+            String[] lines = new String[2];
+            String content = "";
+            if (file.isFile()) {
+                try {
+                    Scanner reader = new Scanner(file);
+                    // add two lines into content of the doc
+                    while (reader.hasNext()) {
+                        for (int i = 0; i < lines.length; i++) {
+                            lines[i] = reader.nextLine();
+                        }
                     }
+                    content += lines[0] + "\n" + lines[1];
+                    Doc doc = new Doc(content);
+                    docs.add(doc);
+                    count++;
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
                 }
             }
         }
-        return docs.size();
+        return count;
     }
 
     public Doc[] getDocs() {
