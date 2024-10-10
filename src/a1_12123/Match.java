@@ -1,36 +1,32 @@
-package engine;
+package a1_2201140044;
 
 public class Match implements Comparable<Match> {
     private Doc d;
     private Word w;
-    private int freq;
+    private int frequency;
     private int firstIndex;
 
     public Match(Doc d, Word w, int freq, int firstIndex) {
         this.d = d;
         this.w = w;
-        this.freq = freq;
+        this.frequency = freq;
         this.firstIndex = firstIndex;
     }
 
     public int getFreq() {
-        return freq;
+        return this.frequency;
     }
 
     public int getFirstIndex() {
-        return firstIndex;
+        return this.firstIndex;
     }
 
     public Word getWord() {
-        return w;
+        return this.w;
     }
 
-    @Override
     public int compareTo(Match o) {
-        int indexComparison = Integer.compare(this.firstIndex, o.firstIndex);
-        if (indexComparison != 0) {
-            return indexComparison;
-        }
-        return Integer.compare(this.freq, o.freq);
+        int integer;
+        return Integer.compare(this.firstIndex, o.firstIndex);
     }
 }

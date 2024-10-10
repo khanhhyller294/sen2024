@@ -1,4 +1,4 @@
-package engine;
+package a1_2201140044;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,7 +8,9 @@ import java.util.HashSet;
 
 public class Word {
     public static Set<String> stopWords;
-    private String suffix, prefix, text;
+    private String text;
+    private String suffix;
+    private String prefix;
 
     private Word(String prefix, String text, String suffix) {
         this.text = text;
@@ -32,16 +34,16 @@ public class Word {
         return true;
     }
 
-    public String getPrefix() {
-        return prefix;
+    public String getText() {
+        return text;
     }
 
     public String getSuffix() {
         return suffix;
     }
 
-    public String getText() {
-        return text;
+    public String getPrefix() {
+        return prefix;
     }
 
     @Override
@@ -49,20 +51,22 @@ public class Word {
         if (this == o) {
             return true;
         }
-        if (o.getClass() != getClass() || o == null) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Word otherWord = (Word) o;
-        return text.equalsIgnoreCase(otherWord.text);
+
+        Word word = (Word) o;
+
+        return text.equalsIgnoreCase(word.text);
     }
 
     @Override
     public String toString() {
-        return prefix + suffix + text;
+        return prefix + text + suffix;
     }
 
     public static Word createWord(String rawText) {
-        if ( rawText.isEmpty()|| rawText == null ) {
+        if (rawText == null || rawText.isEmpty()) {
             return new Word("", "", "");
         }
 

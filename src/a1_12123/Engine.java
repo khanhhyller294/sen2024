@@ -1,72 +1,76 @@
-package engine;
+package a1_2201140044;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.*;
+import java.io.*;
 
 public class Engine {
-    private List<Doc> docs;
+    private List<Doc> documents;
 
     public Engine() {
-        this.docs = new ArrayList<>();
+        documents = new ArrayList<>();
     }
 
     public int loadDocs(String dirname) {
-        if (Objects.equals(dirname, "")) {
+        File dir = new File(dirname);
+        if (!dir.exists() || !dir.isDirectory()) {
             return 0;
         }
-        File directory = new File(dirname);
-        if (!directory.exists() || !directory.isDirectory()) {
+
+        File[] files = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".txt"));
+        if (files == null) {
             return 0;
         }
-        File[] files = directory.listFiles();
-        Arrays.sort(files, Comparator.comparing(File::getName));
+
         for (File file : files) {
-            if (file.isFile() && file.getName().endsWith(".txt")) {
-                String content;
-                try {
-                    content = new String(Files.readAllBytes(file.toPath()));
-                } catch (IOException e) {
-                    continue;
+            try {
+                StringBuilder contentBuilder = new StringBuilder();
+                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        contentBuilder.append(line).append("\n");
+                    }
                 }
-                this.docs.add(new Doc(content));
+                String content = contentBuilder.toString().trim();
+                Doc doc = new Doc(content);
+                documents.add(doc);
+            } catch (IOException e) {
             }
         }
-        return this.docs.size();
+
+        return documents.size();
     }
 
-
     public Doc[] getDocs() {
-        return this.docs.toArray(new Doc[0]);
+        return documents.toArray(new Doc[0]);
     }
 
     public List<Result> search(Query q) {
         List<Result> results = new ArrayList<>();
-        int size = this.docs.size();
-        for (int i = 0; i < size; i++) {
-            Doc doc = this.docs.get(i);
+        if (q == null) {
+            return results;
+        }
+
+        for (Doc doc : documents) {
             List<Match> matches = q.matchAgainst(doc);
             if (!matches.isEmpty()) {
-                results.add(new Result(doc, matches));
+                Result result = new Result(doc, matches);
+                results.add(result);
             }
         }
+
         Collections.sort(results);
         return results;
     }
 
     public String htmlResult(List<Result> results) {
-        StringJoiner sj = new StringJoiner("");
-        for (Result result : results) {
-            sj.add(result.htmlHighlight());
+        Scanner sc = new Scanner(System.in);
+        StringBuilder htmlresult = new StringBuilder();
+        int string;
+        for(Result result:results){
+            double res;
+            htmlresult.append(result.htmlHighlight());
         }
-        return sj.toString();
+        return htmlresult.toString();
     }
 
 }

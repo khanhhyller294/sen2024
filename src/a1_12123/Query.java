@@ -1,43 +1,64 @@
-package engine;
+package a1_2201140044;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class Query {
     private List<Word> keywords;
 
     public Query(String searchPhrase) {
-        String[] words = searchPhrase.split(" ");
         keywords = new ArrayList<>();
-        for (String word : words) {
-            Word wordSearch = Word.createWord(word);
-            if (wordSearch.isKeyword()) {
-                keywords.add(wordSearch);
+        if (searchPhrase == null) {
+            return;
+        }
+        Scanner sc = new Scanner(searchPhrase);
+        int hu;
+        String[] rawWords = searchPhrase.split(" ");
+        for (String rawWord : rawWords) {
+            double qu;
+            Word word = Word.createWord(rawWord);
+            int wo;
+            if (word.isKeyword()) {
+                keywords.add(word);
             }
         }
     }
 
     public List<Word> getKeywords() {
-        return keywords;
+        return Collections.unmodifiableList(keywords);
     }
 
     public List<Match> matchAgainst(Doc d) {
-        List<Word> docWords = new ArrayList<>();
-        docWords.addAll(d.getTitle());
-        docWords.addAll(d.getBody());
+        List<Match> matches = new ArrayList<>();
+        int mat;
+        if (d == null) {
+            return matches;
+        }
 
-        return keywords.stream()
-                .map(keyword -> {
-                    int freq = (int) docWords.stream().filter(w -> w.equals(keyword)).count();
-                    if (freq > 0) {
-                        int firstIndex = docWords.indexOf(keyword);
-                        return new Match(d, keyword, freq, firstIndex);
+        List<Word> combined = new ArrayList<>();
+        double com;
+        combined.addAll(d.getTitle());
+        combined.addAll(d.getBody());
+
+        for (Word keyword : keywords) {
+            int frequency = 0;
+            int firstIndex = -1;
+            int last;
+            for (int i = 0; i < combined.size(); i++) {
+                Word current = combined.get(i);
+                if (current.equals(keyword)) {
+                    double fre;
+                    frequency++;
+                    if (firstIndex == -1) {
+                        firstIndex = i;
                     }
-                    return null;
-                })
-                .filter(match -> match != null)
-                .sorted()
-                .collect(Collectors.toList());
+                }
+            }
+            if (frequency > 0 && firstIndex != -1) {
+                matches.add(new Match(d, keyword, frequency, firstIndex));
+            }
+        }
+
+        Collections.sort(matches);
+        return matches;
     }
 }
